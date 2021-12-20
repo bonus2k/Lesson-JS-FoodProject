@@ -1,4 +1,3 @@
-
 window.addEventListener('DOMContentLoaded', item => {
     const tabsContent = document.querySelectorAll(".tabcontent"),
         tabItem = document.querySelectorAll(".tabheader__item"),
@@ -28,11 +27,12 @@ window.addEventListener('DOMContentLoaded', item => {
 
     function sendFormData(formSelector, URL) {
         const message = {
-            loading: "img/form/spinner.svg",
-            success:"Спасибо! Скоро мы с Вами свяжемся",
-            failure: "Что-то пошло не так..."
-        },
-            messageStatus = document.createElement('img');
+                loading: "img/form/spinner.svg",
+                success: "Спасибо! Скоро мы с Вами свяжемся",
+                failure: "Что-то пошло не так..."
+            },
+               messageStatus = document.createElement('img');
+
         messageStatus.src = message.loading
         messageStatus.style.cssText = ' display:block; margin:0 auto;'
 
@@ -42,44 +42,46 @@ window.addEventListener('DOMContentLoaded', item => {
                 e.target.insertAdjacentElement('afterend', messageStatus);
                 const formData = new FormData(e.target),
                       obj = {};
+
                 formData.forEach((value, key) => {
-                        obj[key]=value;
-                    }
-                )
-                const request = new XMLHttpRequest();
-                request.open("POST", URL)
-                request.setRequestHeader('Content-Type', 'application/json');
-                request.send(JSON.stringify(obj));
-                request.addEventListener("load", ()=>{
-                    if (request.status===200){
-                        console.log(request.response);
-                        form.reset();
-                        messageStatus.remove();
-                        thanksModal(message.success);
-                    } else {
-                        thanksModal(message.failure);
-                    }
-                })
+                    obj[key] = value;
+                    })
+                fetch(URL,
+                    {method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify(obj)})
+                    .then(data=>data.text())
+                    .then((data)=> {
+                                console.log(data),
+                                messageStatus.remove(),
+                                thanksModal(message.success)
+                    })
+                    .catch(()=> {
+                        thanksModal(message.failure)
+                    })
+                    .finally(
+                        form.reset()
+                    )
             })
         })
     }
 
-    function thanksModal(message){
+    function thanksModal(message) {
         const modalDialog = document.querySelector('.modal__dialog'),
-              modalMessage = document.createElement('div');
+            modalMessage = document.createElement('div');
 
         modalDialog.classList.add("hide");
         openModal();
         modalMessage.classList.add('modal__dialog')
         modalMessage.innerHTML =
             `
-            <div class="modal__content">
+                <div class="modal__content">
                     <div data-close class="modal__close">&times;</div>
                     <div class="modal__title">${message}</div>
-            <div>        
+                <div>        
 `
         document.querySelector('.modal').append(modalMessage);
-        setTimeout(()=>{
+        setTimeout(() => {
             modalMessage.remove()
             modalDialog.classList.add("show");
             modalDialog.classList.remove("hide");
@@ -176,35 +178,22 @@ window.addEventListener('DOMContentLoaded', item => {
 
     class MenuCard {
 
-        constructor(src, alt, title, descr, price, parentSelector, ...classes) {
+        constructor(src, alt, title, descr, price, parentSelector, transfer = 74, ...classes) {
             this.scr = src;
             this.alt = alt;
             this.title = title;
             this.descr = descr;
             this.price = price;
             this.parentSelector = document.querySelector(parentSelector);
+            this.transfer = transfer;
             this.classes = (classes.length > 0) ? classes : ['menu__item'];
-            this.transfer = 75;
             this.changeToRUB();
         }
 
         changeToRUB() {
-            this.price = +this.price * this.transfer;
-        }
+            this.price = (+this.price * (1 / this.transfer)).toFixed(2);
+            ;
 
-        //Изучить await/async, const transfer = getCurrentRate().then(current => current.rates.USD) получаю нужные данные
-        getCurrentRate() {
-            return new Promise((resolve) =>{
-                const reques = new XMLHttpRequest();
-                reques.open("GET", "https://www.cbr-xml-daily.ru/latest.js");
-                reques.send()
-                reques.addEventListener("load", ()=> {
-                    if (reques.status === 200) {
-                        const current = JSON.parse(reques.response);
-                        resolve(current);
-                    }
-                })
-            })
         }
 
         render() {
@@ -224,33 +213,42 @@ window.addEventListener('DOMContentLoaded', item => {
         }
     }
 
-    new MenuCard(
-        'img/tabs/vegy.jpg',
-        'vegy',
-        'Меню "Фитнес"',
-        'Меню \"Фитнес\" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. ' +
-        'Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu .container'
-    ).render();
+    fetch('https://www.cbr-xml-daily.ru/latest.js', {
+        method: 'GET',
+    })
+        .then(current => current.json())
+        .then(current => {
+            new MenuCard(
+                'img/tabs/vegy.jpg',
+                'vegy',
+                'Меню "Фитнес"',
+                'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. ' +
+                'Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+                4.5,
+                '.menu .container',
+                current.rates.USD
+            ).render(),
 
-    new MenuCard(
-        'img/tabs/elite.jpg',
-        'elite',
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. ' +
-        'Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        14,
-        '.menu .container'
-    ).render();
+            new MenuCard(
+                'img/tabs/elite.jpg',
+                'elite',
+                'Меню “Премиум”',
+                'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. ' +
+                'Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+                7,
+                '.menu .container',
+                current.rates.USD
+            ).render(),
 
-    new MenuCard(
-        'img/tabs/post.jpg',
-        'post',
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, ' +
-        'молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        21,
-        '.menu .container'
-    ).render();
+            new MenuCard(
+                'img/tabs/post.jpg',
+                'post',
+                'Меню "Постное"',
+                'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, ' +
+                'молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+                10.5,
+                '.menu .container',
+                current.rates.USD
+            ).render()
+        });
 })
