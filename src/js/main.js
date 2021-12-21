@@ -9,6 +9,9 @@ window.addEventListener('DOMContentLoaded', item => {
         modal = document.querySelector(".modal"),
         timerInterval = setInterval(openModal, 15000);
 
+    const offerSlider = document.querySelector('.offer__slider'),
+        offerSlide = offerSlider.querySelectorAll('.offer__slide');
+
     function hideTabContent() {
         tabsContent.forEach(item => {
             item.classList.remove("show", "fade")
@@ -152,6 +155,12 @@ window.addEventListener('DOMContentLoaded', item => {
         if (item.target === modal || item.target.getAttribute('data-close') == "") {
             closeModal();
         }
+        if (item.composedPath().includes(offerSlider.querySelector('.offer__slider-prev'))){
+            getPrevSlide(+offerSlider.querySelector('#current').innerHTML);
+        }
+        if (item.composedPath().includes(offerSlider.querySelector('.offer__slider-next'))){
+            getNextSlide(+offerSlider.querySelector('#current').innerHTML);
+        }
     })
 
     document.addEventListener('keydown', item => {
@@ -207,7 +216,7 @@ window.addEventListener('DOMContentLoaded', item => {
 
     async function getData(URL) {
         const data = await fetch(URL);
-        if (!data.ok){
+        if (!data.ok) {
             throw new Error(`Could not fetch ${URL}. Status ${data.status}, code ${data.code}`);
         }
         return await data.json();
@@ -220,4 +229,30 @@ window.addEventListener('DOMContentLoaded', item => {
                     .render();
             }))
         )
+
+    function showOfferSlide(numberSlide) {
+        offerSlide.forEach((item, i) => {
+            offerSlider.querySelector('#total').innerHTML = getZero(offerSlide.length);
+            item.classList.remove('show');
+            item.classList.add('hide');
+            if (i+1 == numberSlide) {
+                item.classList.remove('hide');
+                item.classList.add('show');
+                offerSlider.querySelector('#current').innerHTML = getZero(i + 1);
+            }
+        })
+    }
+
+    showOfferSlide(1)
+
+    function getNextSlide(currentSlide) {
+        const nextSlide = (currentSlide === offerSlide.length) ? 1 : currentSlide + 1;
+        showOfferSlide(nextSlide)
+    }
+
+    function getPrevSlide(currentSlide) {
+        const prevSlide = (currentSlide === 1) ? offerSlide.length : currentSlide - 1;
+        showOfferSlide(prevSlide)
+    }
+
 })
