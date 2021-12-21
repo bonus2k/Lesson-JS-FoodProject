@@ -31,7 +31,7 @@ window.addEventListener('DOMContentLoaded', item => {
                 success: "Спасибо! Скоро мы с Вами свяжемся",
                 failure: "Что-то пошло не так..."
             },
-               messageStatus = document.createElement('img');
+            messageStatus = document.createElement('img');
 
         messageStatus.src = message.loading
         messageStatus.style.cssText = ' display:block; margin:0 auto;'
@@ -41,22 +41,16 @@ window.addEventListener('DOMContentLoaded', item => {
                 e.preventDefault();
                 e.target.insertAdjacentElement('afterend', messageStatus);
                 const formData = new FormData(e.target),
-                      obj = {};
-
-                formData.forEach((value, key) => {
-                    obj[key] = value;
+                    obj = Object.fromEntries(formData);
+                axios.post('http://localhost:3000/requests', {
+                    obj
+                })
+                    .then((data) => {
+                        console.log(data.status),
+                            messageStatus.remove(),
+                            thanksModal(message.success)
                     })
-                fetch(URL,
-                    {method: 'POST',
-                        headers: {'Content-Type':'application/json'},
-                        body: JSON.stringify(obj)})
-                    .then(data=>data.text())
-                    .then((data)=> {
-                                console.log(data),
-                                messageStatus.remove(),
-                                thanksModal(message.success)
-                    })
-                    .catch(()=> {
+                    .catch(() => {
                         thanksModal(message.failure)
                     })
                     .finally(
@@ -192,8 +186,6 @@ window.addEventListener('DOMContentLoaded', item => {
 
         changeToRUB() {
             this.price = (+this.price * (1 / this.transfer)).toFixed(2);
-            ;
-
         }
 
         render() {
@@ -213,42 +205,19 @@ window.addEventListener('DOMContentLoaded', item => {
         }
     }
 
-    fetch('https://www.cbr-xml-daily.ru/latest.js', {
-        method: 'GET',
-    })
-        .then(current => current.json())
-        .then(current => {
-            new MenuCard(
-                'img/tabs/vegy.jpg',
-                'vegy',
-                'Меню "Фитнес"',
-                'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. ' +
-                'Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-                4.5,
-                '.menu .container',
-                current.rates.USD
-            ).render(),
+    async function getData(URL) {
+        const data = await fetch(URL);
+        if (!data.ok){
+            throw new Error(`Could not fetch ${URL}. Status ${data.status}, code ${data.code}`);
+        }
+        return await data.json();
+    }
 
-            new MenuCard(
-                'img/tabs/elite.jpg',
-                'elite',
-                'Меню “Премиум”',
-                'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. ' +
-                'Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-                7,
-                '.menu .container',
-                current.rates.USD
-            ).render(),
-
-            new MenuCard(
-                'img/tabs/post.jpg',
-                'post',
-                'Меню "Постное"',
-                'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, ' +
-                'молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-                10.5,
-                '.menu .container',
-                current.rates.USD
-            ).render()
-        });
+    getData('https://www.cbr-xml-daily.ru/latest.js')
+        .then(current => getData('http://localhost:3000/menu')
+            .then(data => data.forEach(({img, altimg, title, descr, price}) => {
+                new MenuCard(img, altimg, title, descr, price, '.menu .container', current.rates.USD)
+                    .render();
+            }))
+        )
 })
