@@ -10,7 +10,15 @@ window.addEventListener('DOMContentLoaded', item => {
         timerInterval = setInterval(openModal, 15000);
 
     const offerSlider = document.querySelector('.offer__slider'),
-        offerSlide = offerSlider.querySelectorAll('.offer__slide');
+        offerSlide = offerSlider.querySelectorAll('.offer__slide'),
+        slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+        slidesInner = document.querySelector('.offer__slider-inner'),
+        prev = document.querySelector('.offer__slider-prev'),
+        next = document.querySelector('.offer__slider-next'),
+        total = document.querySelector('#total'),
+        current = document.querySelector('#current'),
+        widthSlidesWrapper = window.getComputedStyle(slidesWrapper).width,
+        indicators = document.createElement('ol');
 
     function hideTabContent() {
         tabsContent.forEach(item => {
@@ -155,11 +163,14 @@ window.addEventListener('DOMContentLoaded', item => {
         if (item.target === modal || item.target.getAttribute('data-close') == "") {
             closeModal();
         }
-        if (item.composedPath().includes(offerSlider.querySelector('.offer__slider-prev'))){
-            getPrevSlide(+offerSlider.querySelector('#current').innerHTML);
+        if (item.composedPath().includes(prev)) {
+            getPrevSlide(+current.innerHTML);
         }
-        if (item.composedPath().includes(offerSlider.querySelector('.offer__slider-next'))){
-            getNextSlide(+offerSlider.querySelector('#current').innerHTML);
+        if (item.composedPath().includes(next)) {
+            getNextSlide(+current.innerHTML);
+        }
+        if (item.composedPath().includes(indicators) && item.target.classList.contains('dot')) {
+            showOfferSlide(+item.target.getAttribute('data-id'));
         }
     })
 
@@ -222,23 +233,58 @@ window.addEventListener('DOMContentLoaded', item => {
         return await data.json();
     }
 
-    getData('https://www.cbr-xml-daily.ru/latest.js')
-        .then(current => getData('http://localhost:3000/menu')
-            .then(data => data.forEach(({img, altimg, title, descr, price}) => {
-                new MenuCard(img, altimg, title, descr, price, '.menu .container', current.rates.USD)
-                    .render();
-            }))
-        )
+    // getData('https://www.cbr-xml-daily.ru/latest.js')
+    //     .then(current => getData('http://localhost:3000/menu')
+    //         .then(data => data.forEach(({img, altimg, title, descr, price}) => {
+    //             new MenuCard(img, altimg, title, descr, price, '.menu .container', current.rates.USD)
+    //                 .render();
+    //         }))
+    //     )
 
+    // 1 variant
+    // function showOfferSlide(numberSlide) {
+    //     offerSlide.forEach((item, i) => {
+    //         total.innerHTML = getZero(offerSlide.length);
+    //         item.classList.remove('show');
+    //         item.classList.add('hide');
+    //         if (i + 1 == numberSlide) {
+    //             item.classList.remove('hide');
+    //             item.classList.add('show');
+    //             current.innerHTML = getZero(i + 1);
+    //         }
+    //     })
+    // }
+
+    function initOfferSlide() {
+        slidesInner.style.width = 100 * offerSlide.length + '%';
+        slidesInner.style.display = 'flex';
+        slidesInner.style.transition = '0.5s all';
+        slidesWrapper.style.overflow = 'hidden';
+        indicators.classList.add('carousel-indicators');
+        offerSlider.style.position = 'relative';
+        offerSlider.append(indicators);
+        offerSlide.forEach((slide, i) => {
+            slide.style.width = widthSlidesWrapper;
+            const dot = document.createElement('li');
+            dot.classList.add('dot');
+            dot.style.innerHTML = '.';
+            dot.setAttribute('data-id', i + 1);
+            indicators.append(dot);
+        })
+    }
+
+    initOfferSlide();
+
+//2 variant (carousel)
     function showOfferSlide(numberSlide) {
-        offerSlide.forEach((item, i) => {
-            offerSlider.querySelector('#total').innerHTML = getZero(offerSlide.length);
-            item.classList.remove('show');
-            item.classList.add('hide');
-            if (i+1 == numberSlide) {
-                item.classList.remove('hide');
-                item.classList.add('show');
-                offerSlider.querySelector('#current').innerHTML = getZero(i + 1);
+        let slide = Number.parseFloat(widthSlidesWrapper) * (numberSlide - 1);
+        slidesInner.style.transform = `translateX(-${slide}px)`;
+        current.innerHTML = getZero(numberSlide);
+        document.querySelectorAll('.dot').forEach(item => {
+            if (item.getAttribute('data-id') == numberSlide) {
+                item.style.opacity = '1';
+            } else {
+                item.style.opacity = '0.5';
             }
         })
     }
