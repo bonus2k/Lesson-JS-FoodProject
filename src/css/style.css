@@ -411,6 +411,12 @@ a {
     background-color: #54ed39
 }
 
+.calculating__choose-item_error {
+    color: #fff;
+    background-color: #ed3948;
+    transition: 1s all;
+}
+
 .calculating__choose_medium {
     width: 743px;
     justify-content: space-between;
