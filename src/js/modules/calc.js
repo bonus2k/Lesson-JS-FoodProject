@@ -125,4 +125,4 @@ function calc() {
     calcResult();
 }
 
-module.exports = calc;
+export default calc;

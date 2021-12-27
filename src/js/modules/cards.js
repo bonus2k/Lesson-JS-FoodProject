@@ -1,3 +1,5 @@
+import {getData} from "../services/services";
+
 function cards() {
 
     class MenuCard {
@@ -34,14 +36,6 @@ function cards() {
         }
     }
 
-    async function getData(URL) {
-        const data = await fetch(URL);
-        if (!data.ok) {
-            throw new Error(`Could not fetch ${URL}. Status ${data.status}, code ${data.code}`);
-        }
-        return await data.json();
-    }
-
     getData('https://www.cbr-xml-daily.ru/latest.js')
         .then(current => getData('http://localhost:3000/menu')
             .then(data => data.forEach(({img, altimg, title, descr, price}) => {
@@ -51,4 +45,4 @@ function cards() {
         )
 }
 
-module.exports = cards;
+export default cards;

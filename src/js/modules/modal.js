@@ -1,69 +1,52 @@
-function modal() {
+function closeModal(selector) {
+    const modal = document.querySelector(selector);
 
-    const modal = document.querySelector(".modal"),
+    modal.classList.add("hide");
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+function openModal(selector, timerInterval) {
+    const modal = document.querySelector(selector);
+
+    modal.classList.add("show");
+    modal.classList.remove("hide");
+    document.body.style.overflow = "hidden";
+    clearInterval(timerInterval);
+}
+
+function modal(selector, timerInterval) {
+
+    const modal = document.querySelector(selector),
           btnCallMe = document.querySelectorAll("[data-callMe]");
 
     document.addEventListener('click', item => {
         if (item.target == btnCallMe[0] || item.target == btnCallMe[1]) {
-            openModal();
+            openModal(selector, timerInterval);
         }
         if (item.target === modal || item.target.getAttribute('data-close') == "") {
-            closeModal();
+            closeModal(selector);
         }
     })
-
-    function thanksModal(message) {
-        const modalDialog = document.querySelector('.modal__dialog'),
-            modalMessage = document.createElement('div');
-
-        modalDialog.classList.add("hide");
-        openModal();
-        modalMessage.classList.add('modal__dialog')
-        modalMessage.innerHTML =
-            `
-                <div class="modal__content">
-                    <div data-close class="modal__close">&times;</div>
-                    <div class="modal__title">${message}</div>
-                <div>        
-`
-        document.querySelector('.modal').append(modalMessage);
-
-        setTimeout(() => {
-            modalMessage.remove()
-            modalDialog.classList.add("show");
-            modalDialog.classList.remove("hide");
-            closeModal();
-        }, 4000)
-    }
-
-    function closeModal() {
-        modal.classList.add("hide");
-        modal.classList.remove("show", "fade");
-        document.body.style.overflow = "";
-    }
-
-    function openModal() {
-        modal.classList.add("show", "fade");
-        modal.classList.remove("hide");
-        document.body.style.overflow = "hidden";
-        clearInterval(timerInterval);
-    }
 
     document.addEventListener('keydown', item => {
         if (item.code === 'Escape' &&
             modal.classList.contains("show")) {
-            closeModal();
+            closeModal(selector);
         }
     })
 
+    window.addEventListener('scroll', showScrollModal);
+
     function showScrollModal() {
-        if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 10) {
-            openModal();
+        if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
+            openModal(selector, timerInterval);
             window.removeEventListener('scroll', showScrollModal);
         }
     }
 
-    window.addEventListener('scroll', showScrollModal);
 }
 
-module.exports = modal;
+export default modal;
+export {openModal};
+export {closeModal};

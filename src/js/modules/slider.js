@@ -1,3 +1,5 @@
+import {getZero} from "../services/services";
+
 function slider() {
 
     const offerSlider = document.querySelector('.offer__slider'),
@@ -66,10 +68,6 @@ function slider() {
         const prevSlide = (currentSlide === 1) ? offerSlide.length : currentSlide - 1;
         showOfferSlide(prevSlide)
     }
-
-    function getZero(num) {
-        return (num >= 0 && num < 10) ? `0${num}` : `${num}`
-    }
 }
 
-module.exports = slider;
+export default slider;

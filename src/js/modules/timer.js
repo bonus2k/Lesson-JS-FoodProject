@@ -1,14 +1,10 @@
-function timer(){
+import {getZero} from "../services/services";
 
-    const timer = document.querySelector(".timer"),
-          deadLine = '2021-12-31';
+function timer(selector, deadLine){
 
+    const timer = document.querySelector(selector);
 
     setTimer(timer, deadLine);
-
-    function getZero(num) {
-        return (num >= 0 && num < 10) ? `0${num}` : `${num}`
-    }
 
     function getDeadline(deadLine) {
         const startDate = new Date(),
@@ -41,4 +37,4 @@ function timer(){
     }
 }
 
-module.exports = timer;
+export default timer;

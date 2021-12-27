@@ -1,7 +1,33 @@
-function forms() {
+import {closeModal, openModal} from "./modal";
+
+function forms(selector, timerInterval) {
     const formCallMe = document.querySelectorAll("form");
 
     sendFormData(formCallMe, "server.php");
+
+    function thanksModal(message) {
+        const modalDialog = document.querySelector('.modal__dialog'),
+            modalMessage = document.createElement('div');
+
+        modalDialog.classList.add("hide");
+        openModal(selector, timerInterval);
+        modalMessage.classList.add('modal__dialog')
+        modalMessage.innerHTML =
+            `
+                <div class="modal__content">
+                    <div data-close class="modal__close">&times;</div>
+                    <div class="modal__title">${message}</div>
+                <div>        
+`
+        document.querySelector(selector).append(modalMessage);
+
+        setTimeout(() => {
+            modalMessage.remove()
+            modalDialog.classList.add("show");
+            modalDialog.classList.remove("hide");
+            closeModal(selector);
+        }, 4000)
+    }
 
     function sendFormData(formSelector, URL) {
         const message = {
@@ -20,11 +46,9 @@ function forms() {
                 e.target.insertAdjacentElement('afterend', messageStatus);
                 const formData = new FormData(e.target),
                     obj = Object.fromEntries(formData);
-                axios.post('http://localhost:3000/requests', {
-                    obj
-                })
+                axios.post(URL, {obj})
                     .then((data) => {
-                        console.log(data.status),
+                        console.log(data.data),
                             messageStatus.remove(),
                             thanksModal(message.success)
                     })
@@ -39,4 +63,4 @@ function forms() {
     }
 }
 
-module.exports = forms;
+export default forms;
